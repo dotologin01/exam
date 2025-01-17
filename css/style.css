@@ -553,6 +553,10 @@ body {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-category);
     height: fit-content;
+    position: sticky; /* делает сайдбар "липким" */
+    top: 20px;         /* расстояние от верха, когда сайдбар прилипает */
+    align-self: start; /* если сайдбар является flex-элементом - он стартует в начале */
+    overflow-y: auto; /* если контент не помещается - даем скролл */
 }
 
 /* Links */
@@ -752,6 +756,10 @@ body {
 
     .filters-sidebar {
          margin-bottom: 1.5rem;
+         position: static; /* На мобильных убираем липкость */
+        top: auto; /* сбрасываем top */
+        max-height: none; /* убираем макс высоту */
+        overflow-y: visible; /* убираем скролл */
     }
 
     .product-list {
