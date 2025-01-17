@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="site-header-inner">
+                <a href="/" class="site-logo">Интернет-магазин "Все для дома"</a>
+                <div class="site-header-actions">
+                    <a href="index.html" class="nav-icon">Каталог</a>
+                    <a class='profile-link' href='./lk.html'>Личный кабинет</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="notification-area" id="notifications"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="cart-layout">
+                <section class="cart-section">
+                    <h1>Корзина</h1>
+                    <div id="cart-items" class="cart-items">
+
+                    </div>
+                    <div id="cart-empty" class="cart-empty" style="display: none;">
+                        <p>В корзине ничего нет. <a href="./index.html">Перейдите в каталог</a>, чтобы добавить товары.</p>
+                    </div>
+                </section>
+
+                <section class="order-form">
+                    <h2>Оформление заказа</h2>
+                    <form id="order-form">
+                        <div class="form-group">
+                            <label for="name">Имя</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Телефон</label>
+                            <input type="text" id="phone" name="phone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">Адрес доставки</label>
+                            <input type="text" id="address" name="address" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="delivery_date">Дата доставки</label>
+                            <input type="date" id="delivery_date" name="delivery_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="delivery_time">Время доставки</label>
+                            <select id="delivery_time" name="delivery_time" required>
+                                <option value="08:00-12:00">08:00-12:00</option>
+                                <option value="12:00-14:00">12:00-14:00</option>
+                                <option value="14:00-18:00">14:00-18:00</option>
+                                <option value="18:00-22:00">18:00-22:00</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comment">Комментарии</label>
+                            <textarea id="comment" name="comment" rows="3"></textarea>
+                        </div>
+
+                         <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="newsletter" id="newsletter">
+                                Согласие на получение рассылки
+                            </label>
+                        </div>
+
+                        <div class="order-summary">
+                            <div>
+                                <span>Товары:</span>
+                                <span id="subtotal">0 ₽</span>
+                            </div>
+                            <div>
+                                <span>Доставка:</span>
+                                <span id="delivery-cost">500 ₽</span>
+                            </div>
+                            <div class="total-cost">
+                                <span>Итого:</span>
+                                <span id="total">0 ₽</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="button button--primary">Оформить заказ</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer-inner">
+                <div class="company-info">
+                    <h3>Интернет-магазин "Все для дома"</h3>
+                    <p>©2025 Все права защищены</p>
+                </div>
+                <div class="contact-info">
+                    <p>Телефон: +7(999)999-99-99</p>
+                    <p>Email: myinternetshop@mail.ru</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/cart.js"></script>
+</body>
+</html>

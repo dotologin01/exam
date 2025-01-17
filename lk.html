@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="site-header-inner">
+                <a href="/" class="site-logo">Интернет-магазин "Все для дома"</a>
+                <div class="site-header-actions">
+                    <a href="./index.html" class="nav-icon">Каталог</a>
+                    <a class='cart-link' href='./cart.html'>
+                        <span class="cart-label">Корзина </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="notification-area" id="notifications"></div>
+
+    <main class="main-content">
+        <div class="container">
+            <h1>Заказы</h1>
+            <div class="orders-table-wrapper">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>№</th>
+                            <th>Дата заказа</th>
+                            <th>Состав</th>
+                            <th>Стоимость</th>
+                            <th>Доставка</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно просмотра заказа -->
+    <div class="modal" id="view-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Просмотр заказа</h2>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="order-details" id="view-order-details">
+
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="button button--primary" onclick="orders.closeModal('view-modal')">Ок</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования заказа -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Редактирование заказа</h2>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-order-form">
+                    <div class="form-group">
+                        <label for="edit-name">Имя</label>
+                        <input type="text" id="edit-name" name="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-email">Email</label>
+                        <input type="email" id="edit-email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-phone">Телефон</label>
+                        <input type="text" id="edit-phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-address">Адрес доставки</label>
+                        <input type="text" id="edit-address" name="delivery_address" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-delivery-date">Дата доставки</label>
+                        <input type="date" id="edit-delivery-date" name="delivery_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-delivery-time">Время доставки</label>
+                        <select id="edit-delivery-time" name="delivery_interval" required>
+                            <option value="08:00-12:00">08:00-12:00</option>
+                            <option value="12:00-14:00">12:00-14:00</option>
+                            <option value="14:00-18:00">14:00-18:00</option>
+                            <option value="18:00-22:00">18:00-22:00</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-comment">Комментарии</label>
+                        <textarea id="edit-comment" name="comment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button class="button" onclick="orders.closeModal('edit-modal')">Отмена</button>
+                <button class="button button--primary" onclick="orders.saveOrder()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления заказа -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Удаление заказа</h2>
+                <button class="modal-close">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить заказ?</p>
+            </div>
+             <div class="modal-actions">
+                <button class="button" onclick="orders.closeModal('delete-modal')">Нет</button>
+                <button class="button button--danger" onclick="orders.confirmDelete()">Да</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer-inner">
+                <div class="company-info">
+                    <h3>Интернет-магазин "Все для дома"</h3>
+                    <p>©2025 Все права защищены</p>
+                </div>
+                <div class="contact-info">
+                    <p>Телефон: +7(999)999-99-99</p>
+                    <p>Email: myinternetshop@mail.ru</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/orders.js"></script>
+</body>
+</html>
