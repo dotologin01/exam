@@ -331,13 +331,8 @@ def debts():
 
 # === Маршрут для деталей транзакции (добавляем, если еще не было) ===
 @app.route('/transaction/<int:transaction_id>')
-@login_required
 def transaction_detail(transaction_id):
     transaction = db.session.get(Transaction, transaction_id)
-    if not transaction or transaction.user_id != current_user.id:
-        flash('Транзакция не найдена или у вас нет к ней доступа.', 'danger')
-        return redirect(url_for('index'))
-
     qr_code_data_url = None
     try:
         page_url = url_for('transaction_detail', transaction_id=transaction.id, _external=True)
