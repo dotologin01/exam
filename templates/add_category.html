@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pagination_widget %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <h2>Добавить категорию</h2>
+        <form method="POST" action="{{ url_for('manage_categories') }}">
+            {{ form.hidden_tag() }}
+            {# ... поля формы ... #}
+            <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                {% if form.name.errors %}<div class="invalid-feedback">{% for e in form.name.errors %}{{e}}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+                {{ form.type.label(class="form-label") }}
+                {{ form.type(class="form-control" + (" is-invalid" if form.type.errors else "")) }}
+                {% if form.type.errors %}<div class="invalid-feedback">{% for e in form.type.errors %}{{e}}{% endfor %}</div>{% endif %}
+            </div>
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
+    <div class="col-md-8">
+        <h2>Существующие категории</h2>
+        {% if categories %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Тип</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category_item in categories %} {# Изменил имя переменной цикла #}
+                    <tr>
+                        <td>{{ category_item.name }}</td>
+                        <td>
+                            {% if category_item.type == 'income' %}Доход
+                            {% elif category_item.type == 'expense' %}Расход
+                            {% elif category_item.type == 'debt' %}Долг
+                            {% else %}{{ category_item.type }}{% endif %}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_category', category_id=category_item.id)}}" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить категорию {{category_item.name}}? Это возможно только если она не используется.');">×</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {{ pagination_widget(pagination, request.endpoint) }}
+        {% else %}
+        <p>Нет созданных категорий.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

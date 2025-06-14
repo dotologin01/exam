@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="grid-stack">
+    <!-- Gridstack будет добавлять виджеты сюда -->
+</div>
+
+<!-- Шаблоны для виджетов -->
+<template id="widget-summary-template">
+    <div class="p-3 h-100">
+        <h2 class="h5">Финансовый обзор за <span data-id="current-month">{{ current_month }}</span></h2>
+        <p class="mb-1">Доходы: <span class="text-success fw-bold" data-id="monthly-income">{{ "%.2f"|format(monthly_income) }}</span></p>
+        <p class="mb-1">Расходы: <span class="text-danger fw-bold" data-id="monthly-expenses">{{ "%.2f"|format(monthly_expenses) }}</span></p>
+        <hr class="my-2">
+        <p class="mb-0">Баланс: <span data-id="balance-value" class="fw-bold {% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">{{ "%.2f"|format(balance) }}</span></p>
+    </div>
+</template>
+
+<template id="widget-chart-template">
+    <div style="display: flex; flex-direction: column; height: 100%; padding: 10px;">
+        <h3 data-id="chart-title" style="flex-shrink: 0; margin-bottom: 0.5rem; font-size: 1.1rem;"></h3>
+        <div style="position: relative; flex-grow: 1; min-height: 150px;">
+             <canvas data-id="chart-canvas"></canvas>
+        </div>
+        <p data-id="no-data-message" class="text-center mt-1" style="display:none; flex-shrink: 0; font-style: italic;">Нет данных для отображения.</p>
+    </div>
+</template>
+
+<template id="widget-debt-list-template">
+     <div style="padding: 10px; height: 100%; display: flex; flex-direction: column;">
+        <h3 data-id="debt-list-title" style="font-size: 1.1rem; flex-shrink: 0;"></h3>
+        <p style="flex-shrink: 0;">Всего: <span data-id="debt-list-total" class="fw-bold"></span></p>
+        <ul class="list-group list-group-flush" data-id="debt-list-ul" style="overflow-y: auto; flex-grow: 1;">
+            <!-- Элементы списка будут добавлены JS -->
+        </ul>
+        <p data-id="no-debts-message" class="text-center mt-1" style="display:none; flex-shrink: 0; font-style: italic;">Нет активных долгов.</p>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    console.log("DEBUG: Script block started."); // Отслеживаем начало скрипта
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("DEBUG: DOMContentLoaded event fired.");
+
+        // --- Проверка начального состояния .grid-stack ---
+        const gridContainer = document.querySelector('.grid-stack');
+        if (!gridContainer) {
+            console.error("FATAL: '.grid-stack' container not found in DOM!");
+            return;
+        }
+        console.log("DEBUG: Initial .grid-stack children count:", gridContainer.children.length, "HTML:", gridContainer.innerHTML);
+
+        // --- Получение данных из Flask ---
+        let expenseLabels, expenseData, incomeLabels, incomeData, activeDebtsLent, activeDebtsBorrowed, widgetsLayout;
+        let totalLentUnpaid, totalBorrowedUnpaid;
+
+        try {
+            expenseLabels = JSON.parse('{{ expense_labels_json|safe }}');
+            expenseData = JSON.parse('{{ expense_data_json|safe }}');
+            incomeLabels = JSON.parse('{{ income_labels_json|safe }}');
+            incomeData = JSON.parse('{{ income_data_json|safe }}');
+            activeDebtsLent = JSON.parse('{{ active_debts_lent_json|safe }}'); // Предполагаем, что это JSON от Flask
+            totalLentUnpaid = parseFloat("{{ total_lent_unpaid }}");
+            activeDebtsBorrowed = JSON.parse('{{ active_debts_borrowed_json|safe }}'); // Предполагаем, что это JSON от Flask
+            totalBorrowedUnpaid = parseFloat("{{ total_borrowed_unpaid }}");
+            widgetsLayout = JSON.parse('{{ widgets_layout_json|safe }}');
+            console.log("DEBUG: Data from Flask parsed successfully.");
+            // console.log("DEBUG: widgetsLayout:", widgetsLayout); // Раскомментируйте для просмотра макета
+        } catch (e) {
+            console.error("FATAL: Error parsing JSON data from Flask:", e);
+            // console.error("DEBUG: expense_labels_json:", '{{ expense_labels_json|safe }}'); // Посмотреть, что пришло
+            // console.error("DEBUG: active_debts_lent_json:", '{{ active_debts_lent_json|safe }}');
+            return;
+        }
+
+        // --- Инициализация Gridstack ---
+        let grid; // Объявляем grid здесь
+        try {
+            grid = GridStack.init({
+                cellHeight: '70px',
+                minRow: 1,
+                animate: true,
+                disableDrag: false,
+                disableResize: false,
+                // float: false, // По умолчанию, для уплотнения сверху вниз
+            });
+            console.log("DEBUG: Gridstack instance initialized:", grid);
+            if (!grid) {
+                console.error("FATAL: GridStack.init() failed to return a grid instance!");
+                return;
+            }
+        } catch (e) {
+            console.error("FATAL: Error initializing Gridstack:", e);
+            return;
+        }
+
+
+        // --- Функция для создания графика ---
+        function createPieChart(canvasElement, labels, data, chartLabel) {
+            // ... (код функции createPieChart без изменений, с логами внутри, как в предыдущем ответе)
+            if (!canvasElement) {
+                console.error("createPieChart: canvasElement is NULL. Cannot create chart. ChartLabel:", chartLabel);
+                return null;
+            }
+            const styles = window.getComputedStyle(canvasElement.parentElement);
+            if (parseInt(styles.height, 10) === 0 || parseInt(styles.width, 10) === 0) {
+                 console.warn("createPieChart: Canvas parent has zero dimensions. Chart might not render correctly. ChartLabel:", chartLabel, "Parent:", canvasElement.parentElement);
+            }
+            if (labels.length === 0 || data.length === 0) {
+                const chartContainer = canvasElement.closest('div[style*="flex-grow: 1"]');
+                if (chartContainer) {
+                    const noDataP = chartContainer.nextElementSibling;
+                    if(noDataP && noDataP.dataset.id === "no-data-message") noDataP.style.display = 'block';
+                }
+                canvasElement.style.display = 'none';
+                return null;
+            }
+            canvasElement.style.display = 'block';
+            const chartContainer = canvasElement.closest('div[style*="flex-grow: 1"]');
+            if (chartContainer) {
+                const noDataP = chartContainer.nextElementSibling;
+                if(noDataP && noDataP.dataset.id === "no-data-message") noDataP.style.display = 'none';
+            }
+            try {
+                return new Chart(canvasElement, {
+                    type: 'pie', data: { labels: labels, datasets: [{ label: chartLabel, data: data, backgroundColor: ['rgba(111, 66, 193, 0.7)', 'rgba(214, 51, 132, 0.7)', 'rgba(253, 126, 20, 0.7)', 'rgba(25, 135, 84, 0.7)', 'rgba(0, 123, 255, 0.7)', 'rgba(255, 193, 7, 0.7)'], borderColor: ['rgba(111, 66, 193, 1)', 'rgba(214, 51, 132, 1)', 'rgba(253, 126, 20, 1)', 'rgba(25, 135, 84, 1)', 'rgba(0, 123, 255, 1)', 'rgba(255, 193, 7, 1)'], borderWidth: 1 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { color: '#adb5bd' } } } }
+                });
+            } catch (e) {
+                console.error("Error creating Chart object for " + chartLabel + ":", e, "Canvas:", canvasElement);
+                return null;
+            }
+        }
+
+        // --- Функция для заполнения списка долгов ---
+        function populateDebtList(ulElement, titleElement, totalElement, noDebtsMsgElement, debtsData, totalAmount, title) {
+            // ... (код функции populateDebtList без изменений, с проверками, как в предыдущем ответе)
+            if (!ulElement || !titleElement || !totalElement || !noDebtsMsgElement) {
+                console.error("populateDebtList: One or more required DOM elements are missing for title:", title);
+                return;
+            }
+            titleElement.textContent = title;
+            totalElement.textContent = totalAmount.toFixed(2);
+            ulElement.innerHTML = '';
+            if (!debtsData || debtsData.length === 0) {
+                noDebtsMsgElement.style.display = 'block';
+                return;
+            }
+            noDebtsMsgElement.style.display = 'none';
+            debtsData.forEach(debt => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item bg-transparent border-secondary py-1';
+                let textContent = `${debt.party_name} - ${parseFloat(debt.amount).toFixed(2)}`;
+                if (debt.due_date) {
+                    try {
+                        const dueDateObj = new Date(debt.due_date + "T00:00:00Z");
+                        if (!isNaN(dueDateObj)) { textContent += ` (до ${dueDateObj.toLocaleDateString()})`; }
+                    } catch(e) { console.warn("Could not parse due_date:", debt.due_date); }
+                }
+                li.textContent = textContent;
+                ulElement.appendChild(li);
+            });
+        }
+
+        // --- Добавление виджетов в сетку ---
+        console.log("DEBUG: Starting to iterate widgetsLayout. Count:", widgetsLayout ? widgetsLayout.length : 'N/A');
+        if (!widgetsLayout || !Array.isArray(widgetsLayout)) {
+            console.error("FATAL: widgetsLayout is not a valid array or is undefined.");
+            return;
+        }
+
+        widgetsLayout.forEach((widgetData, index) => {
+            console.log(`DEBUG: Processing widgetLayout item [${index}]: id=${widgetData.id}, type=${widgetData.content_type}`);
+            let contentFragment;
+            let widgetContentHTML = '';
+
+            // Формирование widgetContentHTML
+            let templateId;
+            switch (widgetData.content_type) {
+                case 'summary':         templateId = 'widget-summary-template'; break;
+                case 'expenses_chart':
+                case 'income_chart':    templateId = 'widget-chart-template'; break;
+                case 'lent_debts':
+                case 'borrowed_debts':  templateId = 'widget-debt-list-template'; break;
+                default:
+                    console.error("Unknown widget content_type:", widgetData.content_type, "for widget id:", widgetData.id);
+                    return; // или continue;
+            }
+
+            const template = document.getElementById(templateId);
+            if (template) {
+                contentFragment = template.content.cloneNode(true);
+                // Заполнение заголовков для графиков (остальное - Jinja или после добавления)
+                if (widgetData.content_type === 'expenses_chart' || widgetData.content_type === 'income_chart') {
+                    const titleEl = contentFragment.querySelector('[data-id="chart-title"]');
+                    if (titleEl) {
+                        titleEl.textContent = widgetData.content_type === 'expenses_chart' ? 'Расходы по категориям' : 'Доходы по категориям';
+                    } else { console.warn("Title element not found in chart template for", widgetData.id); }
+                }
+
+                if (contentFragment.firstElementChild) {
+                    widgetContentHTML = contentFragment.firstElementChild.outerHTML;
+                } else {
+                    console.error("No firstElementChild in contentFragment for templateId:", templateId, "widgetId:", widgetData.id);
+                    widgetContentHTML = `<div>Error loading content for ${widgetData.id}</div>`;
+                }
+            } else {
+                console.error("Template not found for templateId:", templateId, "widgetId:", widgetData.id);
+                widgetContentHTML = `<div>Template ${templateId} not found for ${widgetData.id}</div>`;
+            }
+            // console.log(`DEBUG: widgetContentHTML for ${widgetData.id}:`, widgetContentHTML.substring(0,100) + "..."); // Показываем только начало HTML
+
+            if (widgetContentHTML && grid) { // Убедимся, что grid существует
+                const widgetOptions = {
+                    id: widgetData.id, // Gridstack использует это для gs-id
+                    x: widgetData.x, y: widgetData.y,
+                    w: widgetData.w, h: widgetData.h,
+                    content: widgetContentHTML
+                };
+                // console.log(`DEBUG: Attempting to add widget [${widgetData.id}] with options:`, widgetOptions);
+                const addedElement = grid.addWidget(widgetOptions);
+                // console.log(`DEBUG: Returned element from grid.addWidget() for id ${widgetData.id}:`, addedElement);
+
+                if (addedElement) {
+                    // console.log(`DEBUG: Successfully added widget ${widgetData.id}. DOM element:`, addedElement);
+                    const itemContentDiv = addedElement.querySelector('.grid-stack-item-content');
+                    if (!itemContentDiv) {
+                        console.error("FATAL: Could not find .grid-stack-item-content in addedElement for id:", widgetData.id, "Added element:", addedElement);
+                        return;
+                    }
+
+                    // Инициализация содержимого ПОСЛЕ добавления
+                    if (widgetData.content_type === 'expenses_chart') {
+                        const actualCanvas = itemContentDiv.querySelector('[data-id="chart-canvas"]');
+                        createPieChart(actualCanvas, expenseLabels, expenseData, 'Расходы');
+                    } else if (widgetData.content_type === 'income_chart') {
+                        const actualCanvas = itemContentDiv.querySelector('[data-id="chart-canvas"]');
+                        createPieChart(actualCanvas, incomeLabels, incomeData, 'Доходы');
+                    } else if (widgetData.content_type === 'lent_debts') {
+                        populateDebtList(
+                            itemContentDiv.querySelector('[data-id="debt-list-ul"]'),
+                            itemContentDiv.querySelector('[data-id="debt-list-title"]'),
+                            itemContentDiv.querySelector('[data-id="debt-list-total"]'),
+                            itemContentDiv.querySelector('[data-id="no-debts-message"]'),
+                            activeDebtsLent, totalLentUnpaid, 'Я одолжил(а)'
+                        );
+                    } else if (widgetData.content_type === 'borrowed_debts') {
+                         populateDebtList(
+                            itemContentDiv.querySelector('[data-id="debt-list-ul"]'),
+                            itemContentDiv.querySelector('[data-id="debt-list-title"]'),
+                            itemContentDiv.querySelector('[data-id="debt-list-total"]'),
+                            itemContentDiv.querySelector('[data-id="no-debts-message"]'),
+                            activeDebtsBorrowed, totalBorrowedUnpaid, 'Я занял(а)'
+                        );
+                    }
+                } else {
+                    console.error("grid.addWidget() returned null or undefined for id:", widgetData.id, "with options:", widgetOptions);
+                }
+            } else {
+                if (!grid) console.error("grid instance is not available for widget id:", widgetData.id);
+                if (!widgetContentHTML) console.warn("widgetContentHTML is empty for widgetData, skipping addWidget:", widgetData);
+            }
+        });
+
+        console.log("DEBUG: Finished processing widgetsLayout.");
+        console.log("DEBUG: Final .grid-stack children count:", gridContainer.children.length);
+
+        // --- Обработчики событий Gridstack (оставил временно закомментированными для отладки задвоения) ---
+        /*
+        grid.on('dragstop', function(event, element) {
+            console.log("DEBUG: dragstop event", element);
+            grid.compact();
+            saveLayout();
+        });
+        grid.on('resizestop', function(event, element) {
+            console.log("DEBUG: resizestop event", element);
+            grid.compact();
+            const widgetId = element.getAttribute('gs-id');
+            if (widgetId && (widgetId === 'expenses_chart_widget' || widgetId === 'income_chart_widget')) {
+                const chartInstance = Chart.getChart(element.querySelector('.grid-stack-item-content [data-id="chart-canvas"]'));
+                if (chartInstance) { chartInstance.destroy(); }
+                if (widgetId === 'expenses_chart_widget') {
+                    createPieChart(element.querySelector('.grid-stack-item-content [data-id="chart-canvas"]'), expenseLabels, expenseData, 'Расходы');
+                } else {
+                    createPieChart(element.querySelector('.grid-stack-item-content [data-id="chart-canvas"]'), incomeLabels, incomeData, 'Доходы');
+                }
+            }
+            saveLayout();
+        });
+
+        function saveLayout() {
+            const newLayout = grid.save(false);
+            console.log('DEBUG: Layout to save:', newLayout);
+            // fetch('/save_layout', { ... });
+        }
+        */
+    });
+    console.log("DEBUG: Script block finished.");
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+/* static/css/style.css */
+body {
+    padding-top: 4.5rem; /* Учитываем высоту navbar */
+    /* min-height: 100vh; Можно добавить, если нужно чтобы футер всегда был внизу */
+}
+
+.flash-messages .alert {
+    margin-bottom: 1rem;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+/* Фиолетовые акценты (можно расширить) */
+.btn-primary,
+.btn-outline-primary:hover,
+.btn-check:checked+.btn-primary, /* Для radio/checkbox кнопок Bootstrap 5 */
+.btn-check:active+.btn-primary,
+.btn-primary:active,
+.btn-primary:focus,
+.btn-primary.active { /* Для активного состояния, например, в button group */
+    background-color: #6f42c1; /* Bootstrap purple */
+    border-color: #6f42c1;
+    color: #fff; /* Убедимся, что текст на кнопке белый */
+}
+
+.btn-primary:hover {
+    background-color: #59359a;
+    border-color: #53328e;
+}
+
+.nav-link:hover, .nav-link:focus,
+.navbar-brand:hover, .navbar-brand:focus {
+    color: #bf9df0 !important; /* Светло-фиолетовый для текста при наведении */
+}
+
+.nav-item.active > .nav-link, /* Для Bootstrap 5 активный элемент часто имеет класс active на li */
+.nav-link.active /* или на самой ссылке */
+{
+     color: #d9c4f7 !important;
+     /* border-bottom: 2px solid #6f42c1; */ /* Альтернативный вариант выделения */
+}
+/* Если используете border-bottom для активной ссылки, то: */
+.navbar-nav .nav-link.active, .navbar-nav .show > .nav-link {
+    border-bottom: 3px solid #8A2BE2; /* BlueViolet */
+    padding-bottom: calc(0.5rem - 3px); /* Компенсируем высоту бордера, чтобы текст не прыгал */
+}
+
+
+a {
+    color: #9d78ce; /* Основной цвет ссылок */
+    text-decoration: none; /* Убираем подчеркивание по умолчанию */
+}
+a:hover {
+    color: #bf9df0;
+    text-decoration: underline; /* Подчеркивание при наведении */
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #8A2BE2; /* BlueViolet */
+    box-shadow: 0 0 0 0.25rem rgba(138, 43, 226, 0.25);
+}
+
+/* Стили для Gridstack (пункт 3) */
+.grid-stack-item > .grid-stack-item-content {
+    background-color: var(--bs-dark-rgb), 0.75 !important; /*var(--bs-tertiary-bg)*/ /* чуть светлее фона, используя переменные BS5 */
+    border: 1px solid var(--bs-border-color-translucent);
+    border-radius: .375rem; /* var(--bs-border-radius) */
+    padding: 1rem; /* var(--bs-card-spacer-x) или просто 1rem */
+    color: var(--bs-body-color);
+    overflow-y: auto !important; /* Позволяет скроллить контент внутри виджета */
+    overflow-x: hidden !important;
+}
+
+.grid-stack-placeholder > .placeholder-content {
+    border: 1px dashed #6f42c1 !important; /* Фиолетовый пунктир для плейсхолдера */
+    background: rgba(111, 66, 193, 0.1) !important;
+}
+
+.grid-stack .ui-resizable-handle { /* Стили для ручек изменения размера */
+    background-color: rgba(111, 66, 193, 0.5);
+}
+
+/* Заголовки внутри виджетов */
+.grid-stack-item-content h2,
+.grid-stack-item-content h3 {
+    margin-top: 0;
+    color: var(--bs-light); /* Более светлый цвет для заголовков на темном фоне */
+}
+
+/* Для графиков Chart.js в темной теме */
+.chart-container { /* Обертка для canvas, если нужна */
+    position: relative;
+    height: 300px; /* или другая высота */
+    width: 100%;
+}

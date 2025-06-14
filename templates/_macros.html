@@ -1,0 +1,43 @@
+{# templates/_macros.html #}
+{% macro pagination_widget(pagination, endpoint) %} {# <--- Убираем **kwargs из сигнатуры #}
+  {% if pagination and (pagination.has_prev or pagination.has_next) %}
+  <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-4">
+          {# Ссылка на предыдущую страницу #}
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+              {# kwargs автоматически передаст все дополнительные именованные аргументы из вызова макроса #}
+              <a class="page-link" href="{{ url_for(endpoint, page=pagination.prev_num, **kwargs) if pagination.has_prev else '#' }}" tabindex="-1" aria-disabled="{{ 'true' if not pagination.has_prev else 'false' }}">
+                  « <span class="d-none d-sm-inline">Назад</span>
+              </a>
+          </li>
+
+          {# Ссылки на страницы #}
+          {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if page_num %}
+                  {% if pagination.page == page_num %}
+                      <li class="page-item active" aria-current="page">
+                          <span class="page-link">{{ page_num }}</span>
+                      </li>
+                  {% else %}
+                      <li class="page-item">
+                          <a class="page-link" href="{{ url_for(endpoint, page=page_num, **kwargs) }}">{{ page_num }}</a>
+                      </li>
+                  {% endif %}
+              {% else %}
+                  <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+          {% endfor %}
+
+          {# Ссылка на следующую страницу #}
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for(endpoint, page=pagination.next_num, **kwargs) if pagination.has_next else '#' }}">
+                  <span class="d-none d-sm-inline">Вперед</span> »
+              </a>
+          </li>
+      </ul>
+  </nav>
+  <p class="text-center text-muted small">
+      Страница {{ pagination.page }} из {{ pagination.pages }}. Всего записей: {{ pagination.total }}.
+  </p>
+  {% endif %}
+{% endmacro %}

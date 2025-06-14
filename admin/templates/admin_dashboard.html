@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ title }}</h1>
+    <p>Добро пожаловать в панель администратора.</p>
+    <ul class="list-group">
+        <li class="list-group-item"><a href="{{ url_for('admin.list_users') }}">Управление пользователями</a></li>
+        <!-- Другие ссылки админки -->
+    </ul>
+</div>
+{% endblock %}
